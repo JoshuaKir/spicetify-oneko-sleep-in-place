@@ -11,6 +11,7 @@
     idleAnimation = null,
     idleAnimationFrame = 0,
     forceSleep = false,
+    sleepOnProgress = true,
     grabbing = false,
     grabStop = true,
     nudge = false,
@@ -373,19 +374,24 @@
     const diffY = nekoPosY - mousePosY;
     const distance = Math.sqrt(diffX ** 2 + diffY ** 2);
 
-    // Cat has to sleep on top of the progress bar
-    if (
-      forceSleep &&
-      Math.abs(diffY) < nekoSpeed &&
-      Math.abs(diffX) < nekoSpeed
-    ) {
-      // Make the cat sleep exactly on the top of the progress bar
-      nekoPosX = mousePosX;
-      nekoPosY = mousePosY;
-      nekoEl.style.left = `${nekoPosX - 16}px`;
-      nekoEl.style.top = `${nekoPosY - 16}px`;
-
-      idle();
+    // Cat has to sleep
+    if (forceSleep) {
+      // Cat has to sleep on top of the progress bar
+      if (
+        sleepOnProgress &&
+        Math.abs(diffY) < nekoSpeed &&
+        Math.abs(diffX) < nekoSpeed
+      ) {
+        nekoPosX = mousePosX;
+        nekoPosY = mousePosY;
+        nekoEl.style.left = `${nekoPosX - 16}px`;
+        nekoEl.style.top = `${nekoPosY - 16}px`;
+        idle();
+      }
+      // Make the cat sleep right where they are
+        else if (!sleepOnProgress) {
+        idle();
+      }
       return;
     }
 
@@ -510,10 +516,30 @@
       return div;
     }
 
+    function sleepModeButton() {
+      const button = document.createElement("input")
+
+      button.className = "oneko-sleep-mode-toggle";
+      button.id = "sleep-mode";
+      button.type = "checkbox";
+      button.checked = sleepOnProgress;
+      
+      button.addEventListener('change', (event) => {
+        sleepOnProgress = event.currentTarget.checked;
+      })
+
+      Spicetify.Tippy(button, {
+        ...Spicetify.TippyProps,
+        content: "Sleep On Progress Bar",
+      });
+
+      return button;
+    }
+
     for (const variant of variants) {
       container.appendChild(variantButton(variant));
     }
-
+    container.appendChild(sleepModeButton());
     return container;
   }
 
